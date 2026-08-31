@@ -1,0 +1,10 @@
+prefix=@PREFIX@
+libdir=@LIBDIR@
+includedir=@INCLUDEDIR@
+
+Name: urn
+Description: URN parser library for C
+Version: @VERSION@
+URL: https://github.com/c-sdk/urn
+Libs: -L${libdir} -lurn
+Cflags: -I${includedir}

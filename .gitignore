@@ -1,0 +1,10 @@
+.cache/
+.direnv/
+build/
+*.a
+*.d
+*.dSYM/
+*.o
+*.pc
+compile_flags.txt
+deps/
