@@ -40,10 +40,54 @@ Feature(rejects_invalid_urns)
     assert_false(urn_parse("urn:-bad:nss", &parsed));
 }
 
+Feature(renders_basic_urn)
+{
+    urn value = {
+        .nid = { "example", 7 },
+        .nss = { "animal:ferret:nose", 18 },
+    };
+    char buffer[64];
+
+    assert_equal(30, urn_render(&value, buffer, sizeof(buffer)));
+    assert_string_equal("urn:example:animal:ferret:nose", buffer);
+}
+
+Feature(renders_r_q_and_f_components)
+{
+    urn value = {
+        .nid = { "example", 7 },
+        .nss = { "a123", 4 },
+        .r_component = { "abc", 3 },
+        .q_component = { "xyz", 3 },
+        .f_component = { "frag", 4 },
+    };
+    char buffer[64];
+
+    assert_equal(31, urn_render(&value, buffer, sizeof(buffer)));
+    assert_string_equal("urn:example:a123?+abc?=xyz#frag", buffer);
+}
+
+Feature(reports_required_render_length_when_buffer_is_small)
+{
+    urn value = {
+        .nid = { "example", 7 },
+        .nss = { "animal:ferret:nose", 18 },
+    };
+    char buffer[8];
+
+    assert_equal(30, urn_render(&value, buffer, sizeof(buffer)));
+    assert_string_equal("urn:exa", buffer);
+}
+
 Describe("urn parser",
     Trait("parse",
         Run(parses_basic_urn),
         Run(parses_r_q_and_f_components),
         Run(rejects_invalid_urns)
+    ),
+    Trait("render",
+        Run(renders_basic_urn),
+        Run(renders_r_q_and_f_components),
+        Run(reports_required_render_length_when_buffer_is_small)
     )
 )

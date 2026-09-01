@@ -22,6 +22,7 @@ typedef struct urn {
 } urn;
 
 bool urn_parse(const char *input, urn *out);
+size_t urn_render(const urn *value, char *buffer, size_t buffer_len);
 
 #ifdef __cplusplus
 }

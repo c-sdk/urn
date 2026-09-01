@@ -8,6 +8,24 @@ static bool is_nid_char(char c)
     return isalnum((unsigned char)c) || c == '-';
 }
 
+static bool has_component(urn_slice slice)
+{
+    return slice.data != NULL || slice.len > 0;
+}
+
+static size_t write_bytes(char *buffer, size_t buffer_len, size_t offset, const char *data, size_t data_len)
+{
+    if (buffer != NULL && offset < buffer_len && data_len > 0) {
+        size_t writable = buffer_len - offset;
+        if (writable > data_len) {
+            writable = data_len;
+        }
+        memcpy(buffer + offset, data, writable);
+    }
+
+    return offset + data_len;
+}
+
 bool urn_parse(const char *input, urn *out)
 {
     if (input == NULL || out == NULL) {
@@ -80,4 +98,39 @@ bool urn_parse(const char *input, urn *out)
     }
 
     return true;
+}
+
+size_t urn_render(const urn *value, char *buffer, size_t buffer_len)
+{
+    if (value == NULL) {
+        if (buffer != NULL && buffer_len > 0) {
+            buffer[0] = '\0';
+        }
+        return 0;
+    }
+
+    size_t offset = 0;
+    offset = write_bytes(buffer, buffer_len, offset, "urn:", 4);
+    offset = write_bytes(buffer, buffer_len, offset, value->nid.data, value->nid.len);
+    offset = write_bytes(buffer, buffer_len, offset, ":", 1);
+    offset = write_bytes(buffer, buffer_len, offset, value->nss.data, value->nss.len);
+
+    if (has_component(value->r_component)) {
+        offset = write_bytes(buffer, buffer_len, offset, "?+", 2);
+        offset = write_bytes(buffer, buffer_len, offset, value->r_component.data, value->r_component.len);
+    }
+    if (has_component(value->q_component)) {
+        offset = write_bytes(buffer, buffer_len, offset, "?=", 2);
+        offset = write_bytes(buffer, buffer_len, offset, value->q_component.data, value->q_component.len);
+    }
+    if (has_component(value->f_component)) {
+        offset = write_bytes(buffer, buffer_len, offset, "#", 1);
+        offset = write_bytes(buffer, buffer_len, offset, value->f_component.data, value->f_component.len);
+    }
+
+    if (buffer != NULL && buffer_len > 0) {
+        buffer[offset < buffer_len ? offset : buffer_len - 1] = '\0';
+    }
+
+    return offset;
 }
